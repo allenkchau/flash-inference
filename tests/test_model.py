@@ -11,6 +11,7 @@ python -m pytest -s tests/test_model.py -v
 from src.model.config import Config
 from src.model.layernorm import LayerNorm
 from src.model.mlp import MLP
+from src.model.attention import MHAttention
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -53,6 +54,17 @@ def test_mlp():
     x = torch.ones(1, 4, config.hidden_size, dtype=config.dtype, device=config.device)
     output = module(x)
 
-    assert x.shape == output.shape, "Shape mismatch between input and output for LayerNorm"
-    assert x.device == output.device, "Device mismatch between input and output for LayerNorm"
+    assert x.shape == output.shape, "Shape mismatch between input and output for MLP layer"
+    assert x.device == output.device, "Device mismatch between input and output for MLP layer"
 
+
+def test_mhattention():
+    module = MLP(config=config)
+    module.eval()
+
+    # batch of 1, seq_len=4
+    x = torch.ones(1, 4, config.hidden_size, dtype=config.dtype, device=config.device)
+    output = module(x)
+
+    assert x.shape == output.shape, "Shape mismatch between input and output for MHAttention"
+    assert x.device == output.device, "Device mismatch between input and output for MHAttention"
