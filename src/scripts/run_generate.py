@@ -33,7 +33,7 @@ def main():
         hidden_size=1024,
         num_layers=12,
         num_heads=8,
-        max_seq_len=25,
+        max_seq_len=512,
         max_batch_size=1,
         dtype=torch.float32,
         device=device
@@ -43,12 +43,22 @@ def main():
 
     # create synthetic prompt ids
     batch_size = 1
-    prompt_len = 8
+    prompt_len = 10
 
     prompt = make_random_prompt(model, batch_size, prompt_len)
 
     # set max new tokens
-    max_new_tokens = 10
+    max_new_tokens = 500
+
+    # warmup block
+    # without warmup we measure starup overhead like CUDA context init etc.
+    warmup_runs = 3
+    model.eval()
+    with torch.no_grad():
+        for _ in range(warmup_runs):
+            model(prompt)
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
 
     # create CUDA events with timing enabled
     start = torch.cuda.Event(enable_timing=True)
@@ -57,7 +67,7 @@ def main():
     start.record()
 
     # call the generate function
-    returned_tokens = generate(model=model, input_ids=prompt, max_new_tokens=max_new_tokens)
+    returned_tokens, prefill_time, decode_time_total, decode_times = generate(model=model, input_ids=prompt, max_new_tokens=max_new_tokens)
 
     end.record()
 
@@ -71,7 +81,10 @@ def main():
     print(f"Full generation: {returned_tokens}")
 
     # Timing metrics for prefill and decode stages
-    print(f"Elpased time of entire operation: {start.elapsed_time(end):.2f} ms")
+    print(f"Prefill time: {prefill_time} ms")
+    print(f"Total decode time: {decode_time_total} ms")
+    print(f"Decode times: {decode_times}")
+    print(f"Total generation time (with overhead): {start.elapsed_time(end):.2f} ms")
 
 if __name__ == "__main__":
     main()
