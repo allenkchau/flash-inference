@@ -22,8 +22,8 @@ class KVCache:
         self.cur_len = 0
 
         # get params from config
-        self.batch_size = config.batch_size
-        self.num_layers = config.num_layers
+        # self.batch_size = config.batch_size
+        # self.num_layers = config.num_layers
 
 
     # during prefill we compute the K/V for the prompt all at once in parallel
