@@ -1,7 +1,8 @@
 This is a fun project I wanted to build from scratch.
 
-Training is expensive but inference is even more expensive. I want to understand how inference in
-these foundation models works and how we can optimize it. Speed and compute are everything.
+A minimal transformer inference engine built from scratch in PyTorch, focused on understanding KV caching, prefill vs decode, and inference performance.
+
+This project prioritizes clarity and systems understanding over training or model accuracy.
 
 
 AI Usage:
