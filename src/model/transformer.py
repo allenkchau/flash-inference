@@ -19,7 +19,7 @@ class TransformerBlock(nn.Module):
         self.ln2: LayerNorm = LayerNorm(config)
         self.mlp: MLP = MLP(config)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, kv_cache=None, layer_idx=None, return_kv=False):
         # save residual
         res = x
 
@@ -27,7 +27,10 @@ class TransformerBlock(nn.Module):
         h = self.ln1(x)
 
         # attention
-        h = self.attn(h)
+        if return_kv:
+            h, K_out, V_out = self.attn(h, kv_cache=kv_cache, layer_idx=layer_idx, return_kv=True)
+        else:
+            h = self.attn(h)
 
         # add residual
         x = res + h
@@ -37,6 +40,9 @@ class TransformerBlock(nn.Module):
         h = self.ln2(x)
         h = self.mlp(h)
         x = res + h
+
+        if return_kv:
+            return (x, K_out, V_out)
         return x
 
 
