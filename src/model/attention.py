@@ -66,7 +66,7 @@ class MHAttention(nn.Module):
 
         
         # prefill
-        if kv_cache.cur_len == 0:
+        if T > 1:
             y, K, V = full_attention(x)
             if return_kv:
                 return y, K, V

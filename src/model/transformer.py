@@ -3,6 +3,14 @@ This module combines our layernorm, mlp, and attention submodules into a transfo
 
 Input: (B, T, H)
 Output: (B, T, H)
+
+I was initially going to remove return_kv because I thought every time we read from the cache we would need to update it like in standard decode.
+So return_kv would always be true when we pass in a valid kv_cache right?
+
+However, I realized that there are legitimate cases where we would want to read from the cache and not update it.
+This would include cases like:
+- beam search (we run attention using the same cached prefix but we don't want to append to the cache until we decide which branch survives)
+- speculative decoding (a smaller model proposes several potential tokens which have to be verified by a bigger model; if rejected, rollback occurs)
 """
 
 from src.model.attention import MHAttention
@@ -27,10 +35,17 @@ class TransformerBlock(nn.Module):
         h = self.ln1(x)
 
         # attention
-        if return_kv:
-            h, K_out, V_out = self.attn(h, kv_cache=kv_cache, layer_idx=layer_idx, return_kv=True)
-        else:
+        if kv_cache is None:
+            # baseline path (no cache)
             h = self.attn(h)
+            K_out = V_out = None
+        else:
+            # cached path (prefill or decode determined inside attention)
+            if return_kv:
+                h, K_out, V_out = self.attn(h, kv_cache=kv_cache, layer_idx=layer_idx, return_kv=True)
+            else:
+                h = self.attn(h, kv_cache=kv_cache, layer_idx=layer_idx, return_kv=False)
+                K_out = V_out = None
 
         # add residual
         x = res + h
@@ -72,7 +87,11 @@ class Transformer(nn.Module):
         self.lm_head = nn.Linear(in_features=config.hidden_size, out_features=config.vocab_size, dtype=config.dtype, device=config.device)
 
 
-    def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
+    def forward(self, input_ids: torch.Tensor,  kv_cache=None, return_kv=False, position_ids=None):
+
+        if return_kv:
+            kv_updates = []
+
         B, T = input_ids.shape
         assert T <= self.max_seq_len, "Input length is greater than max_seq_len"
         assert input_ids.dtype == torch.long
@@ -83,15 +102,31 @@ class Transformer(nn.Module):
         x = self.tok_embed(input_ids)
 
         # positional embeddings
-        pos_ids = torch.arange(T, device=device, dtype=torch.long)    # (T, )
-        pos = self.pos_embed(pos_ids).unsqueeze(0)  # (1, T, H)
+        if position_ids is None:
+            # baseline or prefill
+            position_ids = torch.arange(T, device=device, dtype=torch.long)  # (T,)
+            pos = self.pos_embed(position_ids).unsqueeze(0)                 # (1, T, H) -> broadcasts over B
+        else:
+            # ensure correct shape (B, T)
+            assert position_ids.shape == input_ids.shape, "position_ids must have shape (B, T)"
+            assert position_ids.dtype == torch.long, "position_ids must be torch.long"
+            assert position_ids.device == device, "position_ids must be on same device as input_ids"
+            pos = self.pos_embed(position_ids)                              # (B, T, H)
+
         x = x + pos                                 # (B, T, H)
 
         # pass through transformer blocks
-        for block in self.blocks:
-            x = block(x)
+        for i, block in enumerate(self.blocks):
+            if return_kv:
+                x, K, V = block(x, kv_cache=kv_cache, layer_idx=i, return_kv=return_kv)
+                kv_updates.append((K, V))
+            else:
+                x = block(x, kv_cache=kv_cache, layer_idx=i, return_kv=return_kv)
 
         # apply last layernorm and output head
         x = self.lnf(x)
         logits = self.lm_head(x)
+
+        if return_kv:
+            return (logits, kv_updates)
         return logits

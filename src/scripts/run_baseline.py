@@ -1,5 +1,5 @@
 """
-Script that call the generate function from the runtime folder.
+Script that runs baseline prefill and decode.
 """
 
 import torch

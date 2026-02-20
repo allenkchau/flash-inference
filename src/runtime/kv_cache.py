@@ -49,7 +49,6 @@ class KVCache:
 
         self.k_cache[layer_idx, :, :, :seq_len, :] = k_full
         self.v_cache[layer_idx, :, :, :seq_len, :] = v_full
-        self.cur_len = seq_len
 
 
     # read the KV cache up to the current length
