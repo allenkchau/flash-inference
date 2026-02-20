@@ -5,7 +5,7 @@ Script that runs baseline prefill and decode.
 import torch
 from src.model.config import Config
 from src.model.transformer import Transformer
-from src.runtime.generate import generate
+from src.runtime.generate_baseline import generate
 
 
 def make_random_prompt(model, batch_size: int, seq_len: int):

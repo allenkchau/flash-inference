@@ -5,7 +5,7 @@ Script that runs prefill and decode with basic kv cache.
 import torch
 from src.model.config import Config
 from src.model.transformer import Transformer
-from src.runtime.generate import generate
+from src.runtime.generate_kv import generate_kv
 
 
 def make_random_prompt(model, batch_size: int, seq_len: int):
@@ -67,7 +67,7 @@ def main():
     start.record()
 
     # call the generate function
-    returned_tokens, prefill_time, decode_time_total, decode_times = generate(model=model, input_ids=prompt, max_new_tokens=max_new_tokens)
+    returned_tokens, prefill_time, decode_time_total, decode_times = generate_kv(model=model, input_ids=prompt, max_new_tokens=max_new_tokens)
 
     end.record()
 

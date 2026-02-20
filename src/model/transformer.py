@@ -71,6 +71,9 @@ class Transformer(nn.Module):
         self.num_layers = config.num_layers
         self.vocab_size = config.vocab_size
 
+        # let's also store the config itself so KVCache can access it if necessary
+        self.config = config
+
         # transformer blocks
         self.blocks = nn.ModuleList([TransformerBlock(config) for _ in range(self.num_layers)])
 

@@ -65,3 +65,6 @@ def generate(model, input_ids, max_new_tokens):
 
     # return the generated tokens
     return input_ids, prefill_time, decode_time_total, decode_times
+
+
+
