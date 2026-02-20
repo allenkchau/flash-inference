@@ -9,3 +9,5 @@ AI Usage:
 
 I wrote all of the code myself except for some of the tests in the tests/ folder. I thought the models
 could write more comprehensive tests than myself and it left me more time to work on the actual inference engine.
+
+I also used AI to help write the plot_results and bench_sweep scripts.

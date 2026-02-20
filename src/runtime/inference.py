@@ -34,14 +34,9 @@ def decode_step(model, next_token_id, kv_cache):
     assert next_token_id.dtype == torch.long, "next_token_id must be torch.long"
     assert next_token_id.device == next(model.parameters()).device, "next_token_id must be on same device"
 
-    logits, kv_updates = model(next_token_id, kv_cache=kv_cache, return_kv=True, position_ids=position_ids)
-
-    assert len(kv_updates) == model.num_layers
-
-    # go through all the updates and update our cache appropriately
-    for i, update in enumerate(kv_updates):
-        K_new, V_new = update
-        kv_cache.append(layer_idx=i, k_new=K_new, v_new=V_new, pos=kv_cache.cur_len)
+    # attention layers now write K/V into the cache in-place during decode,
+    # so we don't need return_kv or the per-layer append loop
+    logits = model(next_token_id, kv_cache=kv_cache, return_kv=False, position_ids=position_ids)
 
     kv_cache.cur_len += 1
     return logits[:, -1, :]

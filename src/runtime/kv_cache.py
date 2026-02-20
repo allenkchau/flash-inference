@@ -51,14 +51,16 @@ class KVCache:
         self.v_cache[layer_idx, :, :, :seq_len, :] = v_full
 
 
-    # read the KV cache up to the current length
-    def get_kv(self, layer_idx):
+    # read the KV cache up to a given length (defaults to cur_len)
+    def get_kv(self, layer_idx, length=None):
         assert layer_idx >= 0 and layer_idx < self.k_cache.shape[0], "Invalid layer index"
         max_seq_len = self.k_cache.shape[3]
-        assert 0 <= self.cur_len <= max_seq_len, "cur_len out of bounds"
+        if length is None:
+            length = self.cur_len
+        assert 0 <= length <= max_seq_len, "length out of bounds"
 
-        k_cached = self.k_cache[layer_idx, :, :, :self.cur_len, :]
-        v_cached = self.v_cache[layer_idx, :, :, :self.cur_len, :]
+        k_cached = self.k_cache[layer_idx, :, :, :length, :]
+        v_cached = self.v_cache[layer_idx, :, :, :length, :]
         return k_cached, v_cached
 
     # append new k and new v vector to the KV cache

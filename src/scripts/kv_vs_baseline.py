@@ -34,7 +34,7 @@ def main():
         hidden_size=1024,
         num_layers=12,
         num_heads=8,
-        max_seq_len=1024,
+        max_seq_len=2048,
         max_batch_size=1,
         dtype=torch.float32,
         device=device
@@ -44,7 +44,7 @@ def main():
 
     # create synthetic prompt ids
     batch_size = 1
-    prompt_len = 10
+    prompt_len = 1000
 
     prompt = make_random_prompt(model, batch_size, prompt_len)
 
@@ -96,7 +96,7 @@ def main():
 
     assert torch.equal(returned_tokens_base, returned_tokens_kv)
 
-    print(f"Prompt ids: {prompt}")
+    #print(f"Prompt ids: {prompt}")
     #print(f"Generated ids: {returned_tokens[:, prompt.shape[1]:]}")
     print(f"Prompt shape: {prompt.shape}")
     print(f"Final length: {returned_tokens_base.shape[1]}")

@@ -53,6 +53,7 @@ class MHAttention(nn.Module):
             scores = scores + self.causal_mask[:, :, :T, :T]  # (B, Nh, T, T)
 
             probs = torch.softmax(scores, dim=-1)
+            probs = probs.to(V.dtype) 
             context = probs @ V                               # (B, Nh, T, Hd)
 
             merged = context.transpose(1, 2).reshape(B, T, self.hidden_dim)  # (B, T, H)
@@ -87,26 +88,23 @@ class MHAttention(nn.Module):
         K_new = K_new.reshape(new_shape).transpose(1, 2)  # (B, Nh, 1, Hd)
         V_new = V_new.reshape(new_shape).transpose(1, 2)  # (B, Nh, 1, Hd)
 
-        # read cached K/V up to cur_len 
-        K_cached, V_cached = kv_cache.get_kv(layer_idx)    # (B, Nh, cur_len, Hd)
+        # write new K/V into the pre-allocated cache in-place (no allocation)
+        pos = kv_cache.cur_len
+        kv_cache.append(layer_idx, K_new, V_new, pos)
 
-        # form totals for attention (cached + new)
-        K_total = torch.cat([K_cached, K_new], dim=2)      # (B, Nh, cur_len+1, Hd)
-        V_total = torch.cat([V_cached, V_new], dim=2)      # (B, Nh, cur_len+1, Hd)
+        # read the full K/V as a slice view up to cur_len+1 (zero-copy, no torch.cat!)
+        K_total, V_total = kv_cache.get_kv(layer_idx, length=pos + 1)  # (B, Nh, cur_len+1, Hd)
 
         # query is last position, so causal mask not needed
         scores = Q_new @ K_total.transpose(-2, -1)         # (B, Nh, 1, cur_len+1)
         scores = scores / math.sqrt(self.head_dim)
 
         probs = torch.softmax(scores, dim=-1)
+        probs = probs.to(V_total.dtype) 
         context = probs @ V_total                          # (B, Nh, 1, Hd)
 
         merged = context.transpose(1, 2).reshape(B, 1, self.hidden_dim)  # (B, 1, H)
         y = self.Wo(merged)
-
-        if return_kv:
-            # return new K/V only because runtime will take care of append and bump cur_len once per token
-            return y, K_new, V_new
         return y
 
        
