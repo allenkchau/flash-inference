@@ -43,13 +43,13 @@ def main():
     model = Transformer(config=cfg)
 
     # create synthetic prompt ids
-    batch_size = 1
-    prompt_len = 1000
+    batch_size = 5
+    prompt_len = 500
 
     prompt = make_random_prompt(model, batch_size, prompt_len)
 
     # set max new tokens
-    max_new_tokens = 1000
+    max_new_tokens = 500
 
     # warmup block
     # without warmup we measure starup overhead like CUDA context init etc.

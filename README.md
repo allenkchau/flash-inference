@@ -4,6 +4,24 @@ A minimal transformer inference engine built from scratch in PyTorch, focused on
 
 This project prioritizes clarity and systems understanding over training or model accuracy.
 
+Baseline:
+
+
+Basic KV Cache:
+
+
+Continuous Batching:
+
+Instead of generating one request at a time, run a scheduler loop that, every “tick”:
+- collects all active requests that need 1 decode step
+- packs their “next token” into a single batch (B_active, 1)
+- runs one decode_step for the whole batch
+- scatters outputs back to per-request state
+
+Speculative Decoding:
+
+
+
 
 AI Usage:
 
