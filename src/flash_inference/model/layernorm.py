@@ -40,6 +40,7 @@ class LayerNorm(nn.Module):
         mean = torch.mean(x, dim=-1, keepdim=True)        # shape: batch_size, seq_len, 1; without keepdim the last dimension is removed and we have shape: batch_size, seq_len
         var = torch.var(x, dim=-1, keepdim=True, unbiased=False)        # in Layernorm we use population var and not sample var so we set unbiased to be False
 
+        # we have self.eps to var and then sqrt because that way the denominator doesnt't shrink to 0; sqrt(self.eps) > self.eps so self.eps on the outside can still be very small
         res = (x - mean) / torch.sqrt(var + self.eps)
 
         # apply our learned params

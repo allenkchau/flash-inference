@@ -5,6 +5,8 @@ Class for the transformer config
 import torch
 from dataclasses import dataclass
 
+from flash_inference.model.activations import Activation
+
 # since a config just hold data and not behavior we can use dataclass
 # we don't want our config instance to mutate after we make it
 @dataclass(frozen=True)
@@ -21,6 +23,12 @@ class ModelConfig:
 
     # maximum sequence length the model is built to handle
     max_seq_len: int
+
+    # bias term for mlp layer
+    mlp_bias: bool
+
+    # activation for mlp layer
+    mlp_activation: Activation
 
     device: torch.device
     dtype: torch.dtype

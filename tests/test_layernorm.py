@@ -1,6 +1,7 @@
 import torch
 
 from flash_inference.configs.model_config import ModelConfig
+from flash_inference.model.activations import Activation
 from flash_inference.model.layernorm import LayerNorm
 
 
@@ -11,6 +12,8 @@ def _make_config(model_dim: int = 16) -> ModelConfig:
         num_heads=4,
         model_dim=model_dim,
         max_seq_len=32,
+        mlp_bias=False,
+        mlp_activation=Activation.GELU,
         device=torch.device("cpu"),
         dtype=torch.float32,
     )
