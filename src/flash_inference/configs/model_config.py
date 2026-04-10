@@ -25,7 +25,7 @@ class ModelConfig:
     max_seq_len: int
 
     # bias term for mlp layer
-    mlp_bias: bool
+    bias: bool
 
     # activation for mlp layer
     mlp_activation: Activation
