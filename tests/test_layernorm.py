@@ -5,7 +5,7 @@ from flash_inference.model.activations import Activation
 from flash_inference.model.layernorm import LayerNorm
 
 
-def _make_config(model_dim: int = 16) -> ModelConfig:
+def _make_config(model_dim: int = 16, weight_tying: bool = False) -> ModelConfig:
     return ModelConfig(
         num_layers=2,
         vocab_size=128,
@@ -14,6 +14,7 @@ def _make_config(model_dim: int = 16) -> ModelConfig:
         max_seq_len=32,
         bias=False,
         mlp_activation=Activation.GELU,
+        weight_tying=weight_tying,
         device=torch.device("cpu"),
         dtype=torch.float32,
     )

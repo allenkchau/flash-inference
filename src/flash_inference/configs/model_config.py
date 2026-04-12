@@ -30,6 +30,8 @@ class ModelConfig:
     # activation for mlp layer
     mlp_activation: Activation
 
+    weight_tying: bool
+
     device: torch.device
     dtype: torch.dtype
 

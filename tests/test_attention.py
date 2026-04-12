@@ -7,7 +7,13 @@ from flash_inference.model.activations import Activation
 from flash_inference.model.attention import MHAttention
 
 
-def _make_config(bias: bool, model_dim: int = 16, num_heads: int = 4, max_seq_len: int = 32) -> ModelConfig:
+def _make_config(
+    bias: bool,
+    model_dim: int = 16,
+    num_heads: int = 4,
+    max_seq_len: int = 32,
+    weight_tying: bool = False,
+) -> ModelConfig:
     return ModelConfig(
         num_layers=2,
         vocab_size=128,
@@ -16,6 +22,7 @@ def _make_config(bias: bool, model_dim: int = 16, num_heads: int = 4, max_seq_le
         max_seq_len=max_seq_len,
         bias=bias,
         mlp_activation=Activation.GELU,
+        weight_tying=weight_tying,
         device=torch.device("cpu"),
         dtype=torch.float32,
     )

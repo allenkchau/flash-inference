@@ -42,7 +42,7 @@ class Embeddings(nn.Module):
             )
 
         # we also should validate the dtype of input_ids since embeddings expect an int
-        if not isinstance(input_ids.dtype, torch.long):
+        if input_ids.dtype != torch.long:
             raise ValueError(
                 f"input_ids has dtype {input_ids.dtype} instead of torch.long"
             )

@@ -7,7 +7,12 @@ from flash_inference.model.activations import Activation
 from flash_inference.model.mlp import MLP
 
 
-def _make_config(activation: Activation, bias: bool, model_dim: int = 16) -> ModelConfig:
+def _make_config(
+    activation: Activation,
+    bias: bool,
+    model_dim: int = 16,
+    weight_tying: bool = False,
+) -> ModelConfig:
     return ModelConfig(
         num_layers=2,
         vocab_size=128,
@@ -16,6 +21,7 @@ def _make_config(activation: Activation, bias: bool, model_dim: int = 16) -> Mod
         max_seq_len=32,
         bias=bias,
         mlp_activation=activation,
+        weight_tying=weight_tying,
         device=torch.device("cpu"),
         dtype=torch.float32,
     )
