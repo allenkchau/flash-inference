@@ -15,6 +15,9 @@ class Transformer(nn.Module):
     def __init__(self, config: ModelConfig):
         super().__init__()
 
+        # store config
+        self.config = config
+
         self.weight_tying = config.weight_tying
 
         # embeddings
